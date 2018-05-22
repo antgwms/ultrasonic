@@ -1,0 +1,242 @@
+//start by expanding data partition of the SD card 
+
+pi@emonpi(rw):~$ sudo emonSDexpand
+Filesystem is unlocked - Write access
+type ' rpi-ro ' to lock
+
+======================================================
+
+Current Disk Info:
+
+Disk /dev/mmcblk0: 14.9 GiB, 15931539456 bytes, 31116288 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0x0003ea3e
+
+Device         Boot   Start     End Sectors  Size Id Type
+/dev/mmcblk0p1 *       8192  131071  122880   60M  6 FAT16
+/dev/mmcblk0p2       131072 7288831 7157760  3.4G 83 Linux
+/dev/mmcblk0p3      7288832 9336831 2048000 1000M 83 Linux
+
+
+======================================================
+
+Proposed changes to be made:
+ SD card total disk size = 14.8374023438Gb
+ Data Partition size     = 11.3129887581Gb
+
+Are you sure you want to proceed? [Y/n] y
+Filesystem is unlocked - Write access
+type ' rpi-ro ' to lock
+Created symlink from /etc/systemd/system/resize2fs_once.service to /lib/systemd/system/resize2fs_once.service.
+Created symlink from /etc/systemd/system/multi-user.target.wants/resize2fs_once.service to /lib/systemd/system/resize2fs_once.service.
+
+Welcome to fdisk (util-linux 2.25.2).
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+
+Command (m for help): Partition number (1-3, default 3):
+Partition 3 has been deleted.
+
+Command (m for help): Partition type
+   p   primary (2 primary, 0 extended, 2 free)
+   e   extended (container for logical partitions)
+Select (default p): Partition number (3,4, default 3): First sector (2048-31116287, default 2048): Last sector, +sectors or +size{K,M,G,T,P} (7288832-31116287, default 31116287):
+Created a new partition 3 of type 'Linux' and of size 11.3 GiB.
+
+Command (m for help): Disk /dev/mmcblk0: 14.9 GiB, 15931539456 bytes, 31116288 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0x0003ea3e
+
+Device         Boot   Start      End  Sectors  Size Id Type
+/dev/mmcblk0p1 *       8192   131071   122880   60M  6 FAT16
+/dev/mmcblk0p2       131072  7288831  7157760  3.4G 83 Linux
+/dev/mmcblk0p3      7288832 31013888 23725057 11.3G 83 Linux
+
+
+Command (m for help): The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Re-reading the partition table failed.: Device or resource busy
+
+The kernel still uses the old table. The new table will be used at the next reboot or after you run partprobe(8) or kpartx(8).
+
+This error message can however be disregarded, because your system
+is about to be rebooted, and the new partition table will then be
+read by your operating system.
+
+Writing the resize2fs_once script
+
+
+======================================================================
+
+So far, so good... in 20s your system will reboot
+and resize the /home/pi/data filesystem to fill the resized partition.
+**THIS OPERATION WILL TAKE UP TO 20 MINUTES**
+When completed the Pi will poweroff and close down.
+PLEASE DO NOT UNPLUG THE POWER FOR AT LEAST 30min
+because it will likely result in an unusable filesystem.
+
+======================================================================
+
+Broadcast message from pi@emonpi on pts/0 (Tue 2018-05-15 18:07:39 UTC):
+
+The system is going down for reboot NOW!
+
+//Continue on Ethernet - see pic in One Drive folder
+//Register emoncms | create account - see pic
+https://guide.openenergymonitor.org/setup/connect/ accessed on 12 May 2018
+ 
+//you can assign a static IP, but already setup on the Home Router
+192.168.1.65
+
+//install sensors on the emonTx 
+//Power up emonTx - see OneNote
+
+//Energy now shows on the Inputs on EmonPi, which is MQTT :)  - see OneNote
+
+//log inputs to feed so we can log and visualise the data
+
+//Now install Home Assistant using docker 
+//so I installed docker using:https://github.com/carboncoop/emonpi/blob/master/docs/SD-card-build-docker.md#install-docker
+$ sudo curl -fsSL get.docker.com -o get-docker.sh
+$ sudo sh get-docker.sh
+
+##########script
+# Executing docker install script, commit: 36b78b2
++ sh -c apt-get update -qq >/dev/null
+W: An error occurred during the signature verification. The repository is not updated and the previous index files will be used. GPG error: http://repo.mosquitto.org jessie InRelease: The following signatures were invalid: KEYEXPIRED 1515017477 KEYEXPIRED 1515017477 KEYEXPIRED 1515017477
+
+W: Failed to fetch http://repo.mosquitto.org/debian/dists/jessie/InRelease
+
+W: Some index files failed to download. They have been ignored, or old ones used instead.
++ sh -c apt-get install -y -qq apt-transport-https ca-certificates curl >/dev/null
++ sh -c curl -fsSL "https://download.docker.com/linux/raspbian/gpg" | apt-key add -qq - >/dev/null
++ sh -c echo "deb [arch=armhf] https://download.docker.com/linux/raspbian jessie edge" > /etc/apt/sources.list.d/docker.list
++ [ raspbian = debian ]
++ sh -c apt-get update -qq >/dev/null
+W: An error occurred during the signature verification. The repository is not updated and the previous index files will be used. GPG error: http://repo.mosquitto.org jessie InRelease: The following signatures were invalid: KEYEXPIRED 1515017477 KEYEXPIRED 1515017477 KEYEXPIRED 1515017477
+
+W: Failed to fetch http://repo.mosquitto.org/debian/dists/jessie/InRelease
+
+W: Some index files failed to download. They have been ignored, or old ones used instead.
++ sh -c apt-get install -y -qq --no-install-recommends docker-ce >/dev/null
++ sh -c docker version
+Client:
+ Version:      18.05.0-ce
+ API version:  1.37
+ Go version:   go1.9.5
+ Git commit:   f150324
+ Built:        Wed May  9 22:24:32 2018
+ OS/Arch:      linux/arm
+ Experimental: false
+ Orchestrator: swarm
+
+Server:
+ Engine:
+  Version:      18.05.0-ce
+  API version:  1.37 (minimum version 1.12)
+  Go version:   go1.9.5
+  Git commit:   f150324
+  Built:        Wed May  9 22:20:36 2018
+  OS/Arch:      linux/arm
+  Experimental: false
+If you would like to use Docker as a non-root user, you should now consider
+adding your user to the "docker" group with something like:
+
+  sudo usermod -aG docker your-user
+
+Remember that you will have to log out and back in for this to take effect!
+
+WARNING: Adding a user to the "docker" group will grant the ability to run
+         containers which can be used to obtain root privileges on the
+         docker host.
+         Refer to https://docs.docker.com/engine/security/security/#docker-daemon-attack-surface
+         for more information.
+##########script 
+
+//add user to the docker group, which is pi@
+$ sudo usermod -aG docker pi
+
+//Stop docker to move Docker directory to /home/pi/data (this assumes you want a fresh docker folder otherwise copy it)...
+$ sudo systemctl stop docker
+$ sudo mkdir -p /home/pi/data/docker
+$ sudo rm -rf /var/lib/docker #if wanted you should copy contents instead
+$ sudo ln -s /home/pi/data/docker /var/lib/docker
+$ sudo systemctl start docker
+
+//pull Home Assistant docker image
+$ docker run -d --name="home-assistant" -p 8123:8123 -v /home/pi/data/home-assistant/config:/config -v /etc/localtime:/etc/localtime:ro homeassistant/raspberrypi3-homeassistant:0.69.0
+
+#######script
+pi@emonpi(rw):~$ docker run -d --name="home-assistant" -p 8123:8123 -v /home/pi/data/home-assistant/config:/config -v /etc/localtime:/etc/localtime:ro homeassistant/raspberrypi3-homeassistant:0.69.0
+Unable to find image 'homeassistant/raspberrypi3-homeassistant:0.69.0' locally
+0.69.0: Pulling from homeassistant/raspberrypi3-homeassistant
+95d54dd4bdad: Pull complete
+72bf7d76c392: Pull complete
+9620ed938a4f: Pull complete
+a16372392f2e: Pull complete
+cd5a28710c58: Pull complete
+9b376789f5cb: Pull complete
+428cd24e8c1b: Pull complete
+3e7ded663f3a: Pull complete
+5ad200a39e9a: Pull complete
+47c50281d4f4: Pull complete
+34a35918edbb: Pull complete
+ff968d62969e: Pull complete
+88d8e837fc65: Pull complete
+0048f1b252d1: Pull complete
+fe24e50f4c0c: Pull complete
+8e955956071b: Pull complete
+ed754a20a557: Pull complete
+1aa6695a5b34: Pull complete
+53a522c288dc: Pull complete
+8702ea3049ac: Pull complete
+da22f9c2beb7: Pull complete
+Digest: sha256:29bfc644f664258df5eb7969ccec56d553377b85cf3acffa12c50477a8f62d24
+Status: Downloaded newer image for homeassistant/raspberrypi3-homeassistant:0.69.0
+c491dee206aa6f0e9304818e15a9462876c84981fa38f5678b5196b821311dbc
+########script
+
+//start Home Assistant 
+$ docker start home-assistant
+
+//check the docker container is running 
+$ docker ps -a
+
+#####script
+pi@emonpi(ro):~$ docker ps -a
+CONTAINER ID        IMAGE                                             COMMAND                  CREATED             STATUS              PORTS                    NAMES
+c491dee206aa        homeassistant/raspberrypi3-homeassistant:0.69.0   "/usr/bin/entry.sh p…"   27 minutes ago      Up 26 minutes       0.0.0.0:8123->8123/tcp   home-assistant
+######script
+
+//now access the configuration.yaml in previously specified folder to customise Home Assistant
+$ cd /home/pi/data/home-assistant/config
+
+#####script
+pi@emonpi(ro):config$ sudo nano configuration.yaml
+
+Error writing /root/.nano_history: Read-only file system
+pi@emonpi(ro):config$ rpi-rw
+Filesystem is unlocked - Write access
+type ' rpi-ro ' to lock
+pi@emonpi(rw):config$ sudo nano configuration.yaml  // then save on exit
+pi@emonpi(rw):config$ 
+######script
+
+////////////I INCLUDED WEATHER AND COORDINATES IN HOME ASSISTANT - SEE SCREENSHOT
+
+//now restart the container 
+$ docker restart home-assistant
+
+//check the log for errors if HA doesn't work and keep debugging!
+$ sudo nano home-assistant.log 
+
+
+
+
